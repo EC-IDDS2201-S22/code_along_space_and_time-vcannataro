@@ -1,0 +1,60 @@
+---
+title: "Data in space and time!"
+author: "The IDDS 2201 team"
+date: "4/27/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Packages
+
+The following packages may be useful today. 
+
+```{r}
+library(tidyverse) # data exploration toolset
+library(gganimate) # visualizing through time https://gganimate.com/
+library(lubridate) # exploring time data 
+library(sf)        # makes mapping easy...er
+library(cartogram) # transform spatial objects
+library(rayshader) # shine a light on data
+library(rgl)       # render data viz interactively 
+library(viridis)   # nice color palettes
+library(DT)        # interactive data tables
+library(plotly)    # interactive data plots
+library(maps)      # map tools
+```
+
+
+
+# Data
+
+## State population
+
+```{r}
+# ran tidycensus::census_api_key() first with key sent to inbox.
+# More info: https://walker-data.com/tidycensus/articles/basic-usage.html
+
+## Ran this once and commented out so I do not have to keep bothering
+## the API
+# state_pop <-
+#   tidycensus::get_acs(geography = "state",
+#           variables = "B01003_001",
+#           year = 2018,
+#           geometry = F)
+# readr::write_rds(state_pop,file = "data/state_pop.rds")
+state_pop <- readr::read_rds(file = "data/state_pop.rds")
+
+```
+
+## COVID cases
+
+
+```{r}
+# "https://github.com/nytimes/covid-19-data/raw/master/rolling-averages/us-counties-2020.csv"
+```
+
+
