@@ -105,7 +105,7 @@ covid_case_NY <- covid_data_all %>%
   filter(state == "New York")
 
 
-covid_case_NY %>%
+covid_case_NY <- covid_case_NY %>%
   mutate(state_lower = tolower(state)) %>%
   mutate(county_lower = tolower(county)) %>%
   mutate(state_county = paste(state_lower,county_lower,sep = ","))
@@ -113,11 +113,17 @@ covid_case_NY %>%
 
 
 ```{r}
-ny_data_and_map
+ny_data_and_map <- left_join(x = usa_county_sf,y=covid_case_NY,by=c("ID"="state_county"))
 ```
 
 
 
+```{r}
+ny_data_and_map %>%
+  filter(date == "2022-04-01") %>%
+  ggplot() + 
+  geom_sf(aes(fill=cases_avg))
+```
 
 
 
