@@ -122,9 +122,62 @@ ny_data_and_map <- left_join(x = usa_county_sf,y=covid_case_NY,by=c("ID"="state_
 ny_data_and_map %>%
   filter(date == "2022-04-01") %>%
   ggplot() + 
-  geom_sf(aes(fill=cases_avg))
+  geom_sf(aes(fill=cases_avg)) + 
+  scale_fill_viridis_c("plasma")
 ```
 
 
 
+
+
+```{r}
+covid_by_state <- covid_data_all %>%
+  group_by(date,state) %>%
+  summarize(total_avg_cases  = sum(cases_avg)) %>%
+  ungroup()
+```
+
+
+```{r}
+usa_state_map <- maps::map("state",fill = T,plot = F)
+
+
+usa_state_sf <- sf::st_as_sf(usa_state_map) %>%
+  sf::st_transform(crs = 4236)
+```
+
+
+
+```{r}
+covid_by_state <- covid_by_state %>%
+  mutate(state_lower = tolower(state))
+```
+
+
+```{r}
+usa_map_and_data <- left_join(x = usa_state_sf, y=covid_by_state ,by = c("ID"="state_lower"))
+```
+
+```{r}
+my_date <- "2021-12-27"
+
+usa_map_and_data %>%
+  filter(date == my_date) %>%
+  ggplot() + 
+  geom_sf(aes(fill=total_avg_cases)) + 
+  scale_fill_viridis("plasma")
+
+```
+
+
+```{r}
+my_map <- usa_map_and_data %>%
+  filter(date == my_date) %>%
+  ggplot() + 
+  geom_sf(aes(fill=total_avg_cases, text = ID)) + 
+  scale_fill_viridis("plasma")
+
+
+plotly::ggplotly(my_map)
+```
 
