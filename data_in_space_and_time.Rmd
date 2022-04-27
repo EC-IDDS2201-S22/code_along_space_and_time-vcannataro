@@ -66,7 +66,59 @@ glimpse(covid_2022)
 
 # they all look the same! (columns and data types!)
 
-
+covid_data_all <- rbind(covid_2020,covid_2021,covid_2022)
 ```
+
+
+
+
+
+```{r}
+summary(covid_data_all$cases_avg_per_100k)
+```
+
+
+```{r}
+covid_data_all %>%
+  filter(state == "New York") %>%
+  ggplot() + 
+  geom_line(aes(x=date,y=cases_avg, color = county))
+```
+
+
+
+
+
+
+```{r}
+usa_county_map <- maps::map("county",fill = T,plot = F)
+
+
+usa_county_sf <- sf::st_as_sf(usa_county_map) %>%
+  sf::st_transform(crs = 4236)
+```
+
+
+
+```{r}
+covid_case_NY <- covid_data_all %>%
+  filter(state == "New York")
+
+
+covid_case_NY %>%
+  mutate(state_lower = tolower(state)) %>%
+  mutate(county_lower = tolower(county)) %>%
+  mutate(state_county = paste(state_lower,county_lower,sep = ","))
+```
+
+
+```{r}
+ny_data_and_map
+```
+
+
+
+
+
 
 
