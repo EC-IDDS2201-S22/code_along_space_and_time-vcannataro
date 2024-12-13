@@ -5,6 +5,8 @@ date: "4/27/2022"
 output: html_document
 ---
 
+An in-class code-along adventure exploring ways to visualize data in space and through time! 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -54,7 +56,157 @@ state_pop <- readr::read_rds(file = "data/state_pop.rds")
 
 
 ```{r}
-# "https://github.com/nytimes/covid-19-data/raw/master/rolling-averages/us-counties-2020.csv"
+covid_2020 <- read_csv("https://github.com/nytimes/covid-19-data/raw/master/rolling-averages/us-counties-2020.csv")
+covid_2021 <- read_csv("https://github.com/nytimes/covid-19-data/raw/master/rolling-averages/us-counties-2021.csv")
+covid_2022 <- read_csv("https://github.com/nytimes/covid-19-data/raw/master/rolling-averages/us-counties-2022.csv")
+
+glimpse(covid_2020)
+glimpse(covid_2021)
+glimpse(covid_2022)
+
+# they all look the same! (columns and data types!)
+
+covid_data_all <- rbind(covid_2020,covid_2021,covid_2022)
+```
+
+
+
+
+
+```{r}
+summary(covid_data_all$cases_avg_per_100k)
+```
+
+
+```{r}
+covid_data_all %>%
+  filter(state == "New York") %>%
+  ggplot() + 
+  geom_line(aes(x=date,y=cases_avg, color = county))
+```
+
+
+
+
+
+
+```{r}
+usa_county_map <- maps::map("county",fill = T,plot = F)
+
+
+usa_county_sf <- sf::st_as_sf(usa_county_map) %>%
+  sf::st_transform(crs = 4236)
+```
+
+
+
+```{r}
+covid_case_NY <- covid_data_all %>%
+  filter(state == "New York")
+
+
+covid_case_NY <- covid_case_NY %>%
+  mutate(state_lower = tolower(state)) %>%
+  mutate(county_lower = tolower(county)) %>%
+  mutate(state_county = paste(state_lower,county_lower,sep = ","))
+```
+
+
+```{r}
+ny_data_and_map <- left_join(x = usa_county_sf,y=covid_case_NY,by=c("ID"="state_county"))
+```
+
+
+
+```{r}
+ny_data_and_map %>%
+  filter(date == "2022-04-01") %>%
+  ggplot() + 
+  geom_sf(aes(fill=cases_avg)) + 
+  scale_fill_viridis_c("plasma")
+```
+
+
+
+
+
+```{r}
+covid_by_state <- covid_data_all %>%
+  group_by(date,state) %>%
+  summarize(total_avg_cases  = sum(cases_avg)) %>%
+  ungroup()
+```
+
+
+```{r}
+usa_state_map <- maps::map("state",fill = T,plot = F)
+
+
+usa_state_sf <- sf::st_as_sf(usa_state_map) %>%
+  sf::st_transform(crs = 4236)
+```
+
+
+
+```{r}
+covid_by_state <- covid_by_state %>%
+  mutate(state_lower = tolower(state))
+```
+
+
+```{r}
+usa_map_and_data <- left_join(x = usa_state_sf, y=covid_by_state ,by = c("ID"="state_lower"))
+```
+
+```{r}
+my_date <- "2021-12-27"
+
+usa_map_and_data %>%
+  filter(date == my_date) %>%
+  ggplot() + 
+  geom_sf(aes(fill=total_avg_cases)) + 
+  scale_fill_viridis("plasma")
+
+```
+
+
+```{r}
+my_map <- usa_map_and_data %>%
+  filter(date == my_date) %>%
+  ggplot() + 
+  geom_sf(aes(fill=total_avg_cases, text = ID)) + 
+  scale_fill_viridis("plasma")
+
+
+plotly::ggplotly(my_map)
+```
+
+
+
+```{r}
+plot_gg(my_map, width = 5, height = 5, multicore = T, scale = 250, zoom = 0.6, theta = 0, phi = 90, windowsize = c(800,800))
+```
+
+```{r}
+my_date_seq <- seq(as.Date("2020-04-10"),as.Date("2022-04-20"),by=7)
+```
+
+```{r}
+usa_map_and_data %>%
+  filter(date %in% my_date_seq) %>% 
+  ggplot() + 
+  geom_sf(aes(fill = total_avg_cases)) + 
+  scale_fill_gradientn(
+    colors = viridis_pal(option = "plasma")(15), 
+    limits = c(0,
+               max(usa_map_and_data$total_avg_cases))) +
+  theme_bw() + 
+  labs(title = "COVID cases on {frame_time}") + 
+  transition_time(date) + 
+  ease_aes("linear") -> 
+  cases_over_time
+
+animate(cases_over_time, nframes=100)  
 ```
 
 
